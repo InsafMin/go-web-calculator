@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS expressions (
     expression TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     result REAL,
-    error_message TEXT
+    error_message TEXT,
+    FOREIGN KEY(user_id) REFERENCES users(id)
 );

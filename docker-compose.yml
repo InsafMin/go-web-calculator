@@ -1,43 +1,13 @@
 services:
-  orchestrator:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  calc_service:
+    build: .
+    command: /app/calc_service
     ports:
       - "8080:8080"
+      - "50051:50051"
+
+  worker:
+    build: .
+    command: /app/worker
     environment:
-      - ORCHESTRATOR_URL=http://orchestrator:8080
-    volumes:
-      - type: bind
-        source: ./data
-        target: /data
-    networks:
-      - calc-net
-
-  worker1:
-    build:
-      context: .
-      dockerfile: worker/Dockerfile
-    depends_on:
-      - orchestrator
-    environment:
-      - ORCHESTRATOR_URL=http://orchestrator:8080
-    networks:
-      - calc-net
-
-  worker2:
-    build:
-      context: .
-      dockerfile: worker/Dockerfile
-    depends_on:
-      - orchestrator
-    environment:
-      - ORCHESTRATOR_URL=http://orchestrator:8080
-    networks:
-      - calc-net
-
-volumes:
-  data:
-
-networks:
-  calc-net:
+      - ORCHESTRATOR_GRPC_URL=calc_service:50051

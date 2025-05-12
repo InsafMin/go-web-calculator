@@ -13,6 +13,7 @@ import (
 var client taskpb.TaskServiceClient
 
 func ConnectToOrchestrator(grpcURL string) {
+	log.Println("Trying to connect to orchestrator...")
 	conn, err := grpc.Dial(grpcURL, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("Could not connect to gRPC server: %v\n", err)
@@ -22,6 +23,7 @@ func ConnectToOrchestrator(grpcURL string) {
 }
 
 func StartWorker() {
+	log.Println("Worker started")
 	for {
 		resp, err := client.GetTask(context.Background(), &taskpb.Empty{})
 		if err != nil {
