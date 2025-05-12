@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package task;
+
+option go_package = "/proto/taskpb";
+
+message TaskRequest {
+    string id = 1;
+    string expression = 2;
+}
+
+message TaskResponse {
+    string id = 1;
+    double result = 2;
+}
+
+service TaskService {
+    rpc GetTask(Empty) returns (TaskRequest);
+    rpc SendResult(TaskResponse) returns (Empty);
+}
+
+message Empty {}
