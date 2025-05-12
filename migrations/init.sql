@@ -10,6 +10,5 @@ CREATE TABLE IF NOT EXISTS expressions (
     expression TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     result REAL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    error_message TEXT
 );

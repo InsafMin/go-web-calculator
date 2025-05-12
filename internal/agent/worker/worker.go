@@ -32,20 +32,20 @@ func StartWorker() {
 
 		log.Printf("Got task: ID=%s, Expr=%s", resp.Id, resp.Expression)
 
-		result, err := calculator.Calc(resp.Expression)
-		if err != nil {
-			log.Printf("Error calculating: %v", err)
-			continue
+		result, calcErr := calculator.Calc(resp.Expression)
+		errorMsg := ""
+		if calcErr != nil {
+			errorMsg = calcErr.Error()
+			log.Printf("Error calculating %s: %v", resp.Id, calcErr)
 		}
 
 		_, sendErr := client.SendResult(context.Background(), &taskpb.TaskResponse{
 			Id:     resp.Id,
 			Result: result,
+			Error:  errorMsg,
 		})
 		if sendErr != nil {
-			log.Printf("Failed to send result: %v", sendErr)
-		} else {
-			log.Printf("Sent result for %s: %.2f", resp.Id, result)
+			log.Printf("Failed to send result for %s: %v\n", resp.Id, sendErr)
 		}
 	}
 }

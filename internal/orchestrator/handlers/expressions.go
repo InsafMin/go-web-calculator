@@ -15,7 +15,7 @@ func HandleGetExpressions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DB.Query("SELECT id, expression, status, result FROM expressions WHERE user_id = ?", userID)
+	rows, err := db.DB.Query("SELECT id, expression, status, result, error_message FROM expressions WHERE user_id = ?", userID)
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
@@ -25,7 +25,7 @@ func HandleGetExpressions(w http.ResponseWriter, r *http.Request) {
 	var exprs []db.Expression
 	for rows.Next() {
 		var e db.Expression
-		err := rows.Scan(&e.ID, &e.Expression, &e.Status, &e.Result)
+		err := rows.Scan(&e.ID, &e.Expression, &e.Status, &e.Result, &e.ErrorMessage)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
@@ -35,11 +35,20 @@ func HandleGetExpressions(w http.ResponseWriter, r *http.Request) {
 
 	response := make([]types.Expression, len(exprs))
 	for i, e := range exprs {
+		var resultPtr *float64
+		if e.Result.Valid {
+			result := e.Result.Float64
+			resultPtr = &result
+		} else {
+			resultPtr = nil
+		}
+
 		response[i] = types.Expression{
-			ID:     e.ID,
-			Expr:   e.Expression,
-			Status: e.Status,
-			Result: e.Result,
+			ID:           e.ID,
+			Expr:         e.Expression,
+			Status:       e.Status,
+			Result:       resultPtr,
+			ErrorMessage: e.ErrorMessage.String,
 		}
 	}
 
@@ -49,25 +58,17 @@ func HandleGetExpressions(w http.ResponseWriter, r *http.Request) {
 
 func HandleGetExpression(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Path[len("/api/v1/expressions/"):]
-	userID := types.GetUserID(r.Context())
-
 	expr, err := db.GetExpressionByID(id)
 	if err != nil {
 		http.Error(w, "Expression not found", http.StatusNotFound)
 		return
 	}
 
-	if expr.UserID != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
-
-	json.NewEncoder(w).Encode(map[string]types.Expression{
-		"expression": types.Expression{
-			ID:     expr.ID,
-			Expr:   expr.Expression,
-			Status: expr.Status,
-			Result: expr.Result,
-		},
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"expression": expr.Expression,
+		"status":     expr.Status,
+		"result":     expr.Result.Float64,
+		"error":      expr.ErrorMessage.String,
 	})
 }

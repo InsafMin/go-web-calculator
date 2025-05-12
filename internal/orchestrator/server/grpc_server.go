@@ -26,10 +26,14 @@ func (s *GRPCTaskServer) GetTask(ctx context.Context, req *taskpb.Empty) (*taskp
 }
 
 func (s *GRPCTaskServer) SendResult(ctx context.Context, req *taskpb.TaskResponse) (*taskpb.Empty, error) {
-	log.Printf("Received result for %s: %.2f", req.Id, req.Result)
-	err := db.UpdateExpressionStatus(req.Id, "done", req.Result)
-	if err != nil {
-		log.Printf("Failed to update expression status in DB: %v", err)
+	if req.Error != "" {
+		db.UpdateExpressionError(req.Id, req.Error)
+		log.Printf("Expression %s failed: %v", req.Id, req.Error)
+		return &taskpb.Empty{}, nil
 	}
+
+	db.UpdateExpressionStatus(req.Id, "done", req.Result)
+	log.Printf("Expression %s calculated: %.2f", req.Id, req.Result)
+
 	return &taskpb.Empty{}, nil
 }

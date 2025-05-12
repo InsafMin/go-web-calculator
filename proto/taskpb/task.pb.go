@@ -77,6 +77,8 @@ type TaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Result        float64                `protobuf:"fixed64,2,opt,name=result,proto3" json:"result,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	Ok            bool                   `protobuf:"varint,4,opt,name=ok,proto3" json:"ok,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -125,6 +127,20 @@ func (x *TaskResponse) GetResult() float64 {
 	return 0
 }
 
+func (x *TaskResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *TaskResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
 type Empty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -170,10 +186,12 @@ const file_proto_task_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
 	"\n" +
 	"expression\x18\x02 \x01(\tR\n" +
-	"expression\"6\n" +
+	"expression\"\\\n" +
 	"\fTaskResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06result\x18\x02 \x01(\x01R\x06result\"\a\n" +
+	"\x06result\x18\x02 \x01(\x01R\x06result\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\x12\x0e\n" +
+	"\x02ok\x18\x04 \x01(\bR\x02ok\"\a\n" +
 	"\x05Empty2g\n" +
 	"\vTaskService\x12)\n" +
 	"\aGetTask\x12\v.task.Empty\x1a\x11.task.TaskRequest\x12-\n" +

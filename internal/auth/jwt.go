@@ -12,7 +12,7 @@ var jwtSecret = []byte("your-secret-key")
 func GenerateToken(userID int) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{
-		"user_id": expirationTime.Unix(),
+		"user_id": userID,
 		"exp":     expirationTime.Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

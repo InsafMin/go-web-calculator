@@ -23,12 +23,13 @@ func InitDB(dataSource string) {
         password_hash TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS expressions (
-        id TEXT PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        expression TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'pending',
-        result REAL
-    );`
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    expression TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    result REAL,
+    error_message TEXT
+	);`
 	_, err = DB.Exec(migration)
 	if err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
@@ -36,11 +37,12 @@ func InitDB(dataSource string) {
 }
 
 type Expression struct {
-	ID         string
-	UserID     int
-	Expression string
-	Status     string
-	Result     float64
+	ID           string
+	UserID       int
+	Expression   string
+	Status       string
+	Result       sql.NullFloat64
+	ErrorMessage sql.NullString
 }
 
 func SaveExpression(expr *Expression) error {
@@ -63,8 +65,8 @@ func GetFirstPendingExpression() *Expression {
 
 func GetExpressionByID(id string) (*Expression, error) {
 	e := &Expression{}
-	err := DB.QueryRow("SELECT id, user_id, expression, status, result FROM expressions WHERE id = ?", id).Scan(
-		&e.ID, &e.UserID, &e.Expression, &e.Status, &e.Result,
+	err := DB.QueryRow("SELECT id, user_id, expression, status, result, error_message FROM expressions WHERE id = ?", id).Scan(
+		&e.ID, &e.UserID, &e.Expression, &e.Status, &e.Result, &e.ErrorMessage,
 	)
 	if err != nil {
 		return nil, err
@@ -74,5 +76,12 @@ func GetExpressionByID(id string) (*Expression, error) {
 
 func UpdateExpressionStatus(id string, status string, result float64) error {
 	_, err := DB.Exec("UPDATE expressions SET status = ?, result = ? WHERE id = ?", status, result, id)
+	return err
+}
+
+func UpdateExpressionError(id string, errMsg string) error {
+	_, err := DB.Exec(
+		"UPDATE expressions SET status = 'error', error_message = ? WHERE id = ?", errMsg, id,
+	)
 	return err
 }
